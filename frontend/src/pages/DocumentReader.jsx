@@ -38,7 +38,7 @@ export default function DocumentReader() {
   return (
     <div className="min-h-screen bg-paper">
       <header className="sticky top-0 z-10 border-b border-ink-200/70 bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <button
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/home'))}
             className="flex items-center gap-1.5 text-sm font-medium text-ink-600 hover:text-ink-900"
@@ -51,7 +51,7 @@ export default function DocumentReader() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-6 py-10">
         {error ? (
           <p className="text-sm text-status-rejected">{error}</p>
         ) : !doc ? (
