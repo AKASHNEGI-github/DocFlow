@@ -31,7 +31,7 @@ export default function DocumentDetailModal({ documentId, open, onClose }) {
   }, [open, documentId]);
 
   return (
-    <Modal open={open} onClose={onClose} title={loading ? 'Loading…' : doc?.title || 'Document'} width="max-w-4xl">
+    <Modal open={open} onClose={onClose} title={loading ? 'Loading…' : doc?.title || 'Document'} width="max-w-5xl">
       {loading || !doc ? (
         <p className="py-10 text-center text-sm text-ink-500">Loading…</p>
       ) : (
