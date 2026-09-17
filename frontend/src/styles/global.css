@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+/*
+  ============================================================================
+  THEME ARCHITECTURE - read this before changing any color.
+
+  Two layers, so a future re-theme is a small, predictable diff instead
+  of a hunt through component files:
+
+  1. PRIMITIVES (the plain :root block immediately below) - raw palette
+     swatches. No component ever references these directly; they exist
+     only so the SEMANTIC layer can point at them. Swapping the app's
+     brand hue (blue -> teal, whatever) means changing the 8 values in
+     --palette-brand-* here and nowhere else - every button, link,
+     badge, and the embedded rich-text editor's own accent (editor.css
+     reads --palette-brand-* too, see the note there) follow
+     automatically, in both themes at once.
+
+  2. SEMANTIC TOKENS (the @theme block further down) - what components
+     actually use, via Tailwind utilities (bg-accent-600,
+     text-status-pending, ...) that compile straight to var(--color-*).
+     Named for what they MEAN (accent, ink, status-approved), not what
+     they currently look like, so "make Approved green a bit darker" or
+     "the sidebar should be a touch lighter" is also a one-line change
+     with no component file involved.
+
+  Everything that ISN'T the brand hue - the neutral ink scale, status
+  greens/ambers/reds - stays defined directly as semantic tokens rather
+  than adding a primitive underneath: those rarely change independent of
+  a full brand refresh, and a single named scale (light values here,
+  dark overrides in the :root.dark block below) is already exactly as
+  easy to re-theme as a primitive would be, without an extra layer of
+  indirection to follow for the common case of "just look up what
+  ink-500 is."
+  ============================================================================
+*/
+:root {
+  /* Brand primitive - the one hue the whole app (and the embedded
+     editor) is built around. Both a light-mode and a dark-mode value
+     for each step, since dark mode brightens the accent rather than
+     reusing the light-mode value on a dark background (see the
+     --color-accent-* block below for why). */
+  --palette-brand-700: #1d4ed8;
+  --palette-brand-600: #2563eb;
+  --palette-brand-500: #3b82f6;
+  --palette-brand-100: #dbeafe;
+  --palette-brand-dark-700: #1d4ed8;
+  --palette-brand-dark-600: #3b82f6;
+  --palette-brand-dark-500: #60a5fa;
+  --palette-brand-dark-100: #1e3a5f;
+}
+
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Surfaces */
+  --color-paper: #f8fafc;
+  --color-paper-raised: #ffffff;
+  --color-paper-sunken: #f1f5f9;
+
+  /* Text/border scale - higher number = darker in light mode. Every
+     shade from 100 to 950 is defined; nothing in the app should ever
+     need a shade outside this list. */
+  --color-ink-950: #020617;
+  --color-ink-900: #0f172a;
+  --color-ink-800: #1e293b;
+  --color-ink-700: #334155;
+  --color-ink-600: #475569;
+  --color-ink-500: #64748b;
+  --color-ink-400: #94a3b8;
+  --color-ink-300: #cbd5e1;
+  --color-ink-200: #e2e8f0;
+  --color-ink-100: #f1f5f9;
+
+  /* Accent - the one brand color, used for primary actions, links, and
+     the Live status. Reads from --palette-brand-* (defined above)
+     rather than repeating the hex here, so this and editor.css's
+     --jc-accent can never drift out of sync with each other. */
+  --color-accent-700: var(--palette-brand-700);
+  --color-accent-600: var(--palette-brand-600);
+  --color-accent-500: var(--palette-brand-500);
+  --color-accent-100: var(--palette-brand-100);
+
+  /* Status semantics - independent of the accent, so "primary blue" and "approved green" never compete for attention. */
+  --color-status-none: #94a3b8;
+  --color-status-pending: #b45309;
+  --color-status-pending-bg: #fef3c7;
+  --color-status-approved: #15803d;
+  --color-status-approved-bg: #dcfce7;
+  --color-status-rejected: #b91c1c;
+  --color-status-rejected-bg: #fee2e2;
+  --color-status-cancelled: #475569;
+  --color-status-cancelled-bg: #f1f5f9;
+  --color-status-live: var(--color-accent-600);
+  --color-status-live-bg: var(--color-accent-100);
+
+  /* Sidebar & header chrome (light mode). Was a constant dark-navy panel
+     in both themes - now genuinely theme-reactive, matching the app's
+     own light surfaces instead of a separate dark scale, because the
+     dark chrome read as jarring against a light page. Referencing
+     --color-paper-raised/--color-ink-* rather than new literals keeps
+     this on the same single source of truth as the rest of the app: if
+     paper or ink ever change, the sidebar follows automatically instead
+     of drifting out of sync again.
+     Dark mode is intentionally NOT touched yet (see :root.dark below,
+     which pins these back to their original literal values) - this is a
+     light-mode-only fix while it's reviewed, before doing the same
+     exercise for dark mode. */
+  --color-nav-bg: var(--color-paper-raised);
+  --color-nav-bg-hover: var(--color-paper-sunken);
+  --color-nav-bg-active: var(--color-paper-sunken);
+  --color-nav-text: var(--color-ink-700);
+  --color-nav-text-muted: var(--color-ink-400);
+  --color-nav-border: var(--color-ink-200);
+  /* For the couple of spots (the "DocFlow" wordmark, the signed-in user's
+     name) that were hardcoded text-white because that was simply always
+     correct against a dark nav-bg - not true anymore now that nav-bg is
+     light, so those became text-nav-text-emphasis instead of a literal
+     color, and this is the one token that decides what "emphasized nav
+     text" means in each theme. */
+  --color-nav-text-emphasis: var(--color-ink-900);
+
+  /* Modal backdrop - a fixed dimming scrim, not "text", so it
+     deliberately does NOT invert with the theme either (see Modal.jsx). */
+  --color-overlay: rgb(2 6 23 / 0.55);
+
+  /* Toast chrome - same "constant, not theme-reactive" reasoning as
+     --color-nav-*: a toast is a dark pill with white text in both
+     themes, not a themed surface, so it stays out of the :root.dark
+     block below. Was hardcoded as literal bg-[#0f172a]/bg-[#b91c1c] in
+     ToastContext.jsx; pulled into named tokens (matching --color-ink-900
+     and --color-status-rejected's *light-mode* values, since that's
+     genuinely what these were referencing) purely so a future re-theme
+     has one place to touch instead of a literal hex buried in a
+     component's className string. */
+  --color-toast-bg: #0f172a;
+  --color-toast-error-bg: #b91c1c;
+}
+
+html {
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+/*
+  Dark mode - "dim", not near-black on purpose (a true near-black
+  background reads harsher than most people mean by "dark mode", and
+  this app was specifically asked not to go too dark - reinforced by a
+  second round of feedback that the first pass at this still read as
+  too dark and made reading a document genuinely harder, not just less
+  pretty). Toggled by context/ThemeContext.jsx adding a `dark` class to
+  <html>. Every component references these tokens via Tailwind
+  utilities (bg-ink-900, text-status-pending, ...), which compile
+  straight to var(--color-*) - redefining the variables here re-themes
+  the entire content area with zero changes to any component file.
+*/
+:root.dark {
+  --color-paper: #2b313c;
+  --color-paper-raised: #363d4a;
+  --color-paper-sunken: #232830;
+
+  --color-ink-950: #f8fafc;
+  --color-ink-900: #e9edf3;
+  --color-ink-800: #cfd6e0;
+  --color-ink-700: #b4c5e4;
+  --color-ink-600: #919fb8;
+  --color-ink-500: #7a859b;
+  --color-ink-400: #626c7d;
+  --color-ink-300: #4a5266;
+  --color-ink-200: #3c4353;
+  --color-ink-100: #333a48;
+
+  /* Sidebar & header chrome - lightened a step too (was pinned to its
+     pre-rework literal values while light mode was in progress; now
+     that dark mode is genuinely being revisited, it gets the same
+     "dimmer, not nearly black" treatment). Stays a noticeably darker
+     tier than the main content surfaces above on purpose - a chrome
+     rail that reads as a distinct layer from the page it frames is a
+     deliberate, common pattern (VS Code, Slack, Discord all do this),
+     not the same complaint as the content itself being too dark to
+     read. */
+  --color-nav-bg: #171d29;
+  --color-nav-bg-hover: #212838;
+  --color-nav-bg-active: #212838;
+  --color-nav-text: #cbd5e1;
+  --color-nav-text-muted: #7c879c;
+  --color-nav-border: #232b3d;
+  --color-nav-text-emphasis: #ffffff;
+
+  /* Same 4 steps as light mode, reading --palette-brand-dark-* instead
+     of --palette-brand-* - brighter than the light-mode values (a flat
+     background can't "punch through" a dark background the way it does
+     a light one, so the accent needs more luminance to still read as
+     the same brand color), never a literal hex duplicated from the
+     primitives block. */
+  --color-accent-700: var(--palette-brand-dark-700);
+  --color-accent-600: var(--palette-brand-dark-600);
+  --color-accent-500: var(--palette-brand-dark-500);
+  --color-accent-100: var(--palette-brand-dark-100);
+
+  --color-status-none: #7c879c;
+  --color-status-pending: #fbbf24;
+  --color-status-pending-bg: #4a3614;
+  --color-status-approved: #4ade80;
+  --color-status-approved-bg: #1a3f28;
+  --color-status-rejected: #f87171;
+  --color-status-rejected-bg: #4a2020;
+  --color-status-cancelled: #aab3c2;
+  --color-status-cancelled-bg: #363d4a;
+
+  --color-overlay: rgb(0 0 0 / 0.65);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Thin, consistent scrollbars everywhere - no more falling back to the
+   browser's default chunky one on any scrollable element. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Rendered document content wherever it's shown as a lightweight,
+   non-interactive preview (currently just Home's clamped document
+   cards). The full reader page and the "Actions -> View" modal mount
+   the real Editor in read-only mode instead (see
+   components/documents/DocumentContentViewer.jsx) so they get working
+   code tabs and syntax-highlight colors too - this class is only for
+   spots that just need saved HTML to look right, without any of that
+   interactivity.
+
+   This mirrors components/editor/styles/editor.css's `.jc-content`
+   CONTENT rules (paragraphs, headings, lists, blockquote, code, links,
+   tables) - deliberately NOT its layout rules like padding or
+   min-height, which are sized for the full editing surface and would
+   distort a small card preview. Sourced from this file's own --color-*
+   tokens rather than the editor's separate --jc-* ones, so both this
+   and the live editor re-theme from the same single set of values.
+   Keep in sync if .jc-content's typography changes. */
+.docflow-content { line-height: 1.6; }
+.docflow-content p { margin: 0 0 1em; }
+.docflow-content p:last-child { margin-bottom: 0; }
+.docflow-content h1 { font-size: 1.9em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.25; }
+.docflow-content h2 { font-size: 1.5em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.3; }
+.docflow-content h3 { font-size: 1.25em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.35; }
+.docflow-content h4 { font-size: 1.1em; font-weight: 700; margin: 0.7em 0 0.4em; }
+.docflow-content h1:first-child, .docflow-content h2:first-child, .docflow-content h3:first-child { margin-top: 0; }
+.docflow-content ul, .docflow-content ol { margin: 0 0 1em; padding-left: 1.6em; }
+/* Explicit list-style-type, and display below on img/video/iframe, for
+   the same reason as .jc-content's own copy of these rules (see
+   editor.css) — this file loads alongside Tailwind's Preflight, which
+   resets both unscoped (`list-style: none` on every ul/ol, `display:
+   block` on every img/video/iframe/etc.), and neither property was ever
+   re-declared here to counter it. Low-visibility in this specific spot,
+   since Home.jsx clamps this to 2 lines with overflow hidden, but a
+   document whose very first content is a list or an image would still
+   render wrong within those 2 lines otherwise — and this class exists
+   specifically to *mirror* .jc-content, so letting it silently diverge
+   defeats the point of keeping the two in sync at all. */
+.docflow-content ul { list-style-type: disc; }
+.docflow-content ol { list-style-type: decimal; }
+.docflow-content blockquote {
+  margin: 0 0 1em;
+  padding: 2px 16px;
+  border-left: 3px solid var(--color-ink-200);
+  color: var(--color-ink-600);
+}
+.docflow-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.docflow-content a { color: var(--color-accent-600); text-decoration: underline; }
+.docflow-content table { border-collapse: collapse; margin: 0 0 1em; }
+.docflow-content td,
+.docflow-content th {
+  overflow-wrap: break-word;
+  border-color: var(--color-ink-200);
+}
+.docflow-content th { background: var(--color-paper-sunken); }
+.docflow-content img,
+.docflow-content video,
+.docflow-content iframe {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+.docflow-content hr {
+  height: 0;
+  border: none;
+  border-top: 1px solid var(--color-ink-200);
+  margin: 1.4em 0;
+}
+
+/* DocumentReader (the full-page /read/:id article view) wraps
+   DocumentContentViewer in this class to read at article scale
+   (17px/1.75) rather than the embedded editor's own compact UI-chrome
+   sizing (14px/1.6 - right for composing, cramped for reading a
+   finished piece). DocumentDetailModal deliberately doesn't use this:
+   a modal reads more like a workspace panel than an article. */
+.prose-reader .jc-root {
+  font-size: 17px;
+}
+.prose-reader .jc-content {
+  line-height: 1.75;
+}

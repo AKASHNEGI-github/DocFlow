@@ -1,0 +1,1338 @@
+/* ==========================================================================
+   Design tokens (light theme = defaults, dark theme = overrides below).
+   Every color in this file is one of these variables — nothing else in
+   the stylesheet should contain a literal hex/rgba color. That's what
+   makes the [data-theme="dark"] block further down a complete theme
+   rather than a partial one: flip the attribute on .jc-root and every
+   surface, border, and text color in the whole editor (toolbar, popups,
+   code blocks, alerts, tables) follows automatically, because they're
+   all just reading these variables rather than hardcoding their own.
+   ========================================================================== */
+
+/* Also defined on :root, not just .jc-root: the print/PDF window (see
+   printUtils.js) reuses this entire stylesheet verbatim inside a document
+   that has no .jc-root element at all — just a <body class="jc-content">
+   holding the exported content. Without a :root fallback, every var(--jc-*)
+   reference below would resolve to nothing there and print output would
+   lose all of its styling. .jc-root still wins inside the live app via
+   normal cascade specificity, so this changes nothing for the editor
+   itself — it only makes the same tokens reachable in a document that
+   doesn't have a .jc-root to hang them on. */
+:root,
+.jc-root {
+  /* Surfaces */
+  --jc-bg: #ffffff;              /* primary surface: content, popups, modals */
+  --jc-surface: #f7f7f8;         /* recessed chrome: toolbar, statusbar, code header */
+  --jc-surface-canvas: #f4f5f7;  /* backdrop behind the preview "page" */
+
+  /* Borders / dividers, light to lighter */
+  --jc-border: #d1d5db;
+  --jc-border-subtle: #e2e2e5;
+  --jc-border-faint: #ececef;
+
+  /* Interactive neutrals */
+  --jc-hover-bg: #ececef;
+  --jc-track: #dcdce0;
+
+  /* Text, dark to light */
+  --jc-text: #1f2328;
+  --jc-text-secondary: #3c4043;
+  --jc-text-muted: #5f6368;
+  --jc-text-faint: #9aa0a6;
+  --jc-text-disabled: #b5b8bd;
+
+  /* Accent (brand blue) */
+  --jc-accent: #1a56db;
+  --jc-accent-rgb: 26, 86, 219;
+  --jc-accent-hover: #1544ad;
+  --jc-accent-soft: #dbe9fb;
+  --jc-accent-soft-alt: #eef2ff;
+  --jc-focus-ring: #1a73e8;
+
+  /* Alert types: tinted background + matching border/label color */
+  --jc-note-bg: #eff6ff;      --jc-note: #2563eb;
+  --jc-tip-bg: #ecfdf5;       --jc-tip: #16a34a;
+  --jc-important-bg: #f5f3ff; --jc-important: #7c3aed;
+  --jc-caution-bg: #fefce8;   --jc-caution: #ca8a04;
+  --jc-warning-bg: #fef2f2;   --jc-warning: #dc2626;
+
+  /* Destructive hover (e.g. close-tab button) */
+  --jc-danger-bg: #fde2e1;
+  --jc-danger: #c81e1e;
+
+  /* Find & replace match highlighting — always dark text on these,
+     regardless of theme, the way a physical highlighter pen would read */
+  --jc-find-hit: #fde68a;
+  --jc-find-hit-text: #1f2328;
+  --jc-find-hit-current: #f59e0b;
+  --jc-find-hit-current-text: #ffffff;
+
+  /* One-off content colors */
+  --jc-quote-text: #4b5563;
+  --jc-crumb-text: #4f5b93;
+
+  /* Shadows / scrims */
+  --jc-shadow: rgba(0, 0, 0, 0.12);
+  --jc-shadow-strong: rgba(0, 0, 0, 0.25);
+  --jc-scrim: rgba(0, 0, 0, 0.35);
+}
+
+/* Everything below is layout/box styling for the editor's own shell, not
+   just variables — so unlike the block above, this stays scoped to
+   .jc-root only. Sharing THIS with :root too (an earlier version of this
+   file did, by putting it in the same selector as the variables) put
+   `overflow: hidden` and `display: flex` on <html> itself, which is what
+   broke page scrolling: the whole document inherited the editor's own
+   box behavior instead of just the editor's own box. */
+.jc-root {
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--jc-text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Dark theme: same variable names, different values — nothing below this
+   block (or anywhere else in the file) needs to know dark mode exists. */
+.jc-root[data-theme='dark'] {
+  --jc-bg: #1c1d20;
+  --jc-surface: #232428;
+  --jc-surface-canvas: #17181a;
+
+  --jc-border: #3d3e43;
+  --jc-border-subtle: #303136;
+  --jc-border-faint: #2b2c30;
+
+  --jc-hover-bg: #2e2f34;
+  --jc-track: #3a3b40;
+
+  --jc-text: #e7e7ea;
+  --jc-text-secondary: #c3c4c8;
+  --jc-text-muted: #999ba3;
+  --jc-text-faint: #797b83;
+  --jc-text-disabled: #55565c;
+
+  --jc-accent: #5b93f5;
+  --jc-accent-rgb: 91, 147, 245;
+  --jc-accent-hover: #7ba7f7;
+  --jc-accent-soft: #1c3357;
+  --jc-accent-soft-alt: #202a42;
+  --jc-focus-ring: #5b93f5;
+
+  --jc-note-bg: #17233a;      --jc-note: #6ca2f7;
+  --jc-tip-bg: #10281c;       --jc-tip: #3ecf8e;
+  --jc-important-bg: #241c3d; --jc-important: #ac8bf7;
+  --jc-caution-bg: #2c2408;   --jc-caution: #f0b93d;
+  --jc-warning-bg: #391a1a;   --jc-warning: #f37272;
+
+  --jc-danger-bg: #3a1a1a;
+  --jc-danger: #f37272;
+
+  --jc-find-hit: #d8ab1f;
+  --jc-find-hit-text: #1f2328;
+  --jc-find-hit-current: #b9720a;
+  --jc-find-hit-current-text: #ffffff;
+
+  --jc-quote-text: #9a9fa8;
+  --jc-crumb-text: #94a3e0;
+
+  --jc-shadow: rgba(0, 0, 0, 0.4);
+  --jc-shadow-strong: rgba(0, 0, 0, 0.55);
+  --jc-scrim: rgba(0, 0, 0, 0.6);
+}
+
+/* Read-only mode (DocumentContentViewer - see EditorShell in
+   Editor.jsx): no toolbar/status bar means none of the reasons .jc-root
+   normally draws its own box apply here. Host pages already provide
+   whatever framing they want (DocumentDetailModal has its own bordered,
+   independently-scrolling panel; DocumentReader's full-page article view
+   wants no box at all) - keeping this one boxed and independently
+   scrolling too would nest one scroll region inside another. */
+.jc-root--readonly {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.jc-root--readonly .jc-body {
+  max-height: none;
+  overflow: visible;
+  background: transparent;
+}
+
+/* Belt-and-suspenders alongside codeBlock.jsx's own isLocked() checks
+   (the lock-mode fix — see plugins/codeBlock.jsx): even though the click
+   handler itself now refuses these actions while locked, display:none
+   also means a hidden element can't receive a real click in the first
+   place, so the handler's switch statement for these actions is never
+   even reached here. */
+.jc-root--readonly .jc-code-tab-add,
+.jc-root--readonly .jc-code-action[data-action='edit'],
+.jc-root--readonly .jc-code-action[data-action='delete-tab'],
+.jc-root--readonly .jc-code-action[data-action='delete-block'] {
+  display: none;
+}
+
+.jc-root--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  border-radius: 0;
+  height: 100vh;
+  /* .jc-root already has a 1px border, but at full-viewport size it sits
+     exactly on the physical screen edge with nothing outside it to show
+     any contrast against, so it reads as no border at all. An inset
+     box-shadow draws its ring just inside that same edge instead, right
+     against the toolbar/content, where it's actually visible — without
+     changing layout or leaving the true edge-to-edge fullscreen sizing. */
+  box-shadow: inset 0 0 0 2px var(--jc-text-faint);
+}
+
+/* ---------- Toolbar ---------- */
+
+.jc-toolbar {
+  display: flex;
+  flex-direction: column;
+  background: var(--jc-surface);
+  border-bottom: 1px solid var(--jc-border-subtle);
+}
+
+/* Each row's button SET is fixed by plugins/index.js (that solves the
+   "positions shift in full screen" problem) but the row itself wraps
+   normally, like a plain toolbar — no forced horizontal scrollbar. */
+.jc-toolbar-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  /* Both rows share this gap, but it reads very differently between them:
+     row 1's dropdowns and grouped controls are wide enough to add their
+     own visual breathing room on top of it, while row 2 is almost
+     entirely same-size 28px icon buttons back to back with nothing else
+     to break up the rhythm — so the exact same gap value looks
+     noticeably tighter there. 4px (up from 2px) is sized for that denser
+     row without pushing row 1 wide enough to wrap at normal widths. */
+  gap: 4px;
+  padding: 4px 6px;
+  /* Row 1 (with the font-family/size/align/format dropdowns) and row 2
+     (almost entirely plain 28px icon buttons) don't add up to the same
+     width — centering each one's own content independently (an earlier
+     attempt) left their buttons starting at two different x-positions,
+     which reads as visibly misaligned between rows rather than "centered."
+     Capping both rows at the same shared width and centering *that* box
+     instead keeps their buttons packed on the left, at the same starting
+     edge as each other, while still leaving symmetric space on both
+     sides once the toolbar is wider than that cap (full screen) instead
+     of dumping all of it on the right. Buffered comfortably above both
+     rows' natural width so neither ever wraps to a 3rd line at normal
+     sizes — this only visibly does anything once the editor is wider
+     than ~1150px, i.e. full screen on most monitors. */
+  width: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+}
+
+.jc-toolbar-row + .jc-toolbar-row {
+  border-top: 1px solid var(--jc-border-faint);
+}
+
+.jc-toolbar-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 4px;
+  background: var(--jc-track);
+}
+
+.jc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text-secondary);
+  cursor: pointer;
+}
+
+.jc-btn:hover:not(:disabled) {
+  background: var(--jc-hover-bg);
+}
+
+.jc-btn--active {
+  background: var(--jc-accent-soft);
+  color: var(--jc-accent);
+}
+
+.jc-btn:disabled {
+  color: var(--jc-text-disabled);
+  cursor: default;
+}
+
+.jc-btn:focus-visible,
+.jc-dropdown-trigger:focus-visible,
+.jc-color-swatch:focus-visible {
+  outline: 2px solid var(--jc-focus-ring);
+  outline-offset: 1px;
+}
+
+.jc-icon {
+  display: inline-flex;
+  width: 19px;
+  height: 19px;
+}
+.jc-icon svg { width: 100%; height: 100%; }
+
+.jc-btn-group {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 1px;
+}
+
+/* ---------- Dropdown ---------- */
+
+.jc-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.jc-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 64px;
+}
+
+.jc-dropdown-trigger:hover:not(:disabled) {
+  background: var(--jc-hover-bg);
+}
+
+.jc-dropdown-trigger:disabled {
+  color: var(--jc-text-disabled);
+  cursor: default;
+}
+
+.jc-dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+}
+
+.jc-caret {
+  flex-shrink: 0;
+  color: var(--jc-text-muted);
+}
+
+.jc-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 160px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--jc-bg);
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px var(--jc-shadow);
+}
+
+.jc-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 13px;
+  color: var(--jc-text);
+  cursor: pointer;
+}
+
+.jc-dropdown-item:hover {
+  background: var(--jc-hover-bg);
+}
+
+.jc-dropdown-item--active {
+  background: var(--jc-accent-soft);
+  color: var(--jc-accent);
+}
+
+/* Icon + label row, used by TableTools' grouped Row/Column/Merge&split/
+   Table menus (MenuBtn) instead of the plain text-only item above. */
+.jc-dropdown-item--icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ---------- Color picker (unified text/background, tabbed) ---------- */
+
+.jc-color-popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  width: 236px;
+  padding: 10px;
+  background: var(--jc-bg);
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px var(--jc-shadow);
+}
+
+.jc-color-tabs {
+  display: flex;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--jc-border-subtle);
+}
+
+.jc-color-tab {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.jc-color-tab--active {
+  color: var(--jc-accent);
+  border-bottom-color: var(--jc-accent);
+  font-weight: 600;
+}
+
+.jc-color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.jc-color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.jc-color-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--jc-border-subtle);
+}
+
+.jc-color-custom label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--jc-text-muted);
+}
+
+.jc-color-custom input[type='color'] {
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--jc-border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.jc-color-clear {
+  padding: 3px 9px;
+  border: 1px solid var(--jc-border);
+  border-radius: 3px;
+  background: var(--jc-bg);
+  font-size: 11.5px;
+  color: var(--jc-text-secondary);
+  cursor: pointer;
+}
+.jc-color-clear:hover { background: var(--jc-hover-bg); }
+
+/* ---------- Table tools (floating popup, attached to the table you're in) ---------- */
+
+.jc-table-tools {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: var(--jc-bg);
+  border: 1px solid var(--jc-border);
+  border-radius: 5px;
+  box-shadow: 0 3px 10px var(--jc-shadow-strong);
+  max-width: min(520px, 90vw);
+}
+
+/* Grip handle for manually dragging the bar above out of the way — see
+   the offset/dragBar state in TableTools.jsx. Deliberately a bit muted
+   so it doesn't visually compete with the actual table-editing buttons
+   next to it, but still clearly grabbable. */
+.jc-table-tools-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text-muted);
+  cursor: grab;
+  touch-action: none;
+}
+.jc-table-tools-grip:hover { background: var(--jc-hover-bg); color: var(--jc-text-secondary); }
+.jc-table-tools-grip:active { cursor: grabbing; }
+
+.jc-col-resize-handle {
+  position: absolute;
+  z-index: 25;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+}
+.jc-col-resize-handle:hover {
+  background: rgba(var(--jc-accent-rgb), 0.35);
+}
+
+/* ---------- Media tools (resize/move/edit for image, video, embed) ---------- */
+/* ---------- and link tools (edit/remove an existing link) ---------- */
+
+.jc-media-tools {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--jc-bg);
+  border: 1px solid var(--jc-border);
+  border-radius: 5px;
+  box-shadow: 0 3px 10px var(--jc-shadow-strong);
+}
+
+.jc-link-tools-url {
+  max-width: 220px;
+  padding: 0 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--jc-text-secondary);
+}
+
+.jc-media-resize-handle {
+  position: absolute;
+  z-index: 25;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--jc-accent);
+  border: 2px solid var(--jc-bg);
+  box-shadow: 0 1px 4px var(--jc-shadow-strong);
+  cursor: nwse-resize;
+}
+
+/* The corner handle above resizes both dimensions together (proportional).
+   These two resize only one axis, holding the other exactly where it is —
+   shaped as short bars along the edge they belong to (rather than another
+   circle) so all three read as distinct controls at a glance. */
+.jc-media-resize-handle--right {
+  width: 6px;
+  height: 26px;
+  border-radius: 3px;
+  cursor: ew-resize;
+}
+.jc-media-resize-handle--bottom {
+  width: 26px;
+  height: 6px;
+  border-radius: 3px;
+  cursor: ns-resize;
+}
+
+.jc-media-drop-indicator {
+  position: absolute;
+  z-index: 35;
+  width: 2px;
+  background: var(--jc-accent);
+  pointer-events: none;
+}
+
+/* Once someone has manually resized an image/video with the handle
+   above, this overrides the max-width:100% default (see the media rules
+   further down) so the container doesn't silently shrink a deliberately
+   wider element back down. */
+.jc-media--sized { max-width: none !important; }
+
+/* ---------- Status bar (word / character count) ---------- */
+
+.jc-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--jc-text-muted);
+  border-top: 1px solid var(--jc-border-subtle);
+  background: var(--jc-surface);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.jc-statusbar-path {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.jc-statusbar-crumb {
+  padding: 1px 4px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--jc-crumb-text);
+  cursor: pointer;
+}
+.jc-statusbar-crumb:hover { background: var(--jc-accent-soft-alt); }
+
+.jc-statusbar-counts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  justify-self: end;
+}
+
+.jc-statusbar-sep {
+  color: var(--jc-text-disabled);
+}
+
+/* ---------- Content area ---------- */
+
+.jc-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  /* Bounding this (rather than leaving .jc-root to grow to fit all
+     content, which is what it did before) is what makes the toolbar and
+     status bar stay in view on a long document: they're siblings of
+     .jc-body, not descendants, so once .jc-body scrolls internally
+     instead of the whole page scrolling, they're simply never part of
+     what scrolls. Deliberately not position:sticky — .jc-root has
+     overflow:hidden (for its rounded corners), and a sticky descendant's
+     "stuck" range breaks the moment any ancestor's overflow isn't
+     visible, so sticky positioning here would silently do nothing. */
+  max-height: 70vh;
+  overflow: auto;
+  background: var(--jc-bg);
+}
+
+/* Full screen already bounds the whole editor to 100vh and gives .jc-body
+   the rest via flex:1 — capping it further here would just shrink the
+   editing area for no reason, so the cap is normal-mode only. */
+.jc-root--fullscreen .jc-body {
+  max-height: none;
+}
+
+.jc-content {
+  flex: 1;
+  /* Flex items default to min-width:auto, meaning they refuse to shrink
+     below their content's intrinsic width — and a <pre> with one long,
+     unbroken line (code blocks intentionally don't wrap) has a huge
+     intrinsic width. Without this, that one line pushes .jc-content
+     itself wider than the viewport instead of letting .jc-code-pre's own
+     overflow-x:auto contain it, dragging the whole editor into
+     horizontal scroll rather than just the code block. */
+  min-width: 0;
+  padding: 16px 20px;
+  min-height: 260px;
+  outline: none;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  color: var(--jc-text);
+}
+
+.jc-root--fullscreen .jc-content {
+  min-height: 0;
+}
+
+.jc-content p { margin: 0 0 1em; }
+.jc-content:empty::before {
+  content: attr(data-placeholder);
+  color: var(--jc-text-faint);
+}
+.jc-content h1 { font-size: 1.9em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.25; }
+.jc-content h2 { font-size: 1.5em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.3; }
+.jc-content h3 { font-size: 1.25em; font-weight: 700; margin: 0.7em 0 0.4em; line-height: 1.35; }
+.jc-content h4 { font-size: 1.1em; font-weight: 700; margin: 0.7em 0 0.4em; }
+/* Tailwind's Preflight resets h1-h6 to `font-size: inherit; font-weight:
+   inherit;` (plain text until a utility class says otherwise) — font-size
+   was already restored above, but weight wasn't, so headings rendered at
+   the right size while quietly not being bold, inheriting whatever
+   ordinary paragraph weight surrounded them instead. Same family of gap
+   as the list/image/hr fixes elsewhere in this file: something Tailwind
+   resets that a plain browser (no such reset in the page) never needed
+   restating. */
+.jc-content h1:first-child, .jc-content h2:first-child, .jc-content h3:first-child { margin-top: 0; }
+.jc-content ul, .jc-content ol { margin: 0 0 1em; padding-left: 1.6em; }
+/* Explicit list-style-type on the base rule (not just the nested-depth
+   rules below) because this content is rendered inside apps that reset
+   it globally — Tailwind's Preflight (and similar CSS resets) sets
+   `ol, ul, menu { list-style: none; margin: 0; padding: 0; }` on every
+   list on the page, unscoped. The margin/padding above already happens
+   to override that (a compound class selector always beats a bare
+   element one, regardless of load order), but list-style itself was
+   never re-declared here, so a top-level list rendered no bullets/
+   numbers at all the moment this editor's content was shown inside a
+   page that also uses Tailwind — the standalone project (no Tailwind)
+   never surfaced this, since there was nothing there resetting it in the
+   first place. Confirmed by reproducing this exact integration (Tailwind
+   Preflight + this stylesheet) rather than assuming which rule would win. */
+/* A nested list sitting right under some text in its parent <li> doesn't
+   want that same 1em bottom margin meant for spacing a list off from
+   surrounding paragraphs — a tight top margin instead reads as "part of
+   this list item" rather than "a new block with a paragraph's worth of
+   gap above it." The list-style-type rules below give each nesting
+   depth a different marker (disc/circle/square, decimal/lower-alpha/
+   lower-roman) — the same convention Word/Google Docs/GitHub use —
+   so a correctly-nested sub-list is visually obvious as a sub-list
+   rather than looking identical to its parent level. */
+.jc-content li > ul, .jc-content li > ol { margin: 0.25em 0 0; }
+.jc-content ul { list-style-type: disc; }
+.jc-content ol { list-style-type: decimal; }
+.jc-content ul ul { list-style-type: circle; }
+.jc-content ul ul ul { list-style-type: square; }
+.jc-content ol ol { list-style-type: lower-alpha; }
+.jc-content ol ol ol { list-style-type: lower-roman; }
+.jc-content blockquote {
+  margin: 0 0 1em;
+  padding: 2px 16px;
+  border-left: 3px solid var(--jc-border);
+  color: var(--jc-quote-text);
+}
+.jc-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.jc-content a {
+  color: var(--jc-accent);
+  /* Tailwind's Preflight resets links to `text-decoration: inherit`
+     (invisible unless a utility class adds it back) — same gap as the
+     heading font-weight fix above, just for underline instead of weight. */
+  text-decoration: underline;
+}
+.jc-content table { border-collapse: collapse; margin: 0 0 1em; }
+.jc-content td, .jc-content th {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  border-color: var(--jc-border);
+}
+/* Headers with no styling of their own (typed fresh in this editor)
+   follow the theme like everything else. */
+.jc-content th { background: var(--jc-surface); }
+/* Headers pasted in from elsewhere are a different story: they very
+   commonly carry their own inline background (almost always a light
+   tint — it's the standard convention from Word, Docs, GitHub, etc.)
+   with no inline text color, relying on the browser's default black
+   text for contrast. That default text color is exactly what dark mode
+   overrides application-wide via --jc-text, so the combination — an
+   inline light background the theme can't touch, plus theme text now
+   gone light too — lands on light-on-light. Content that also brings
+   its own inline color is unaffected; this only fills in the pairing
+   that content conventionally leaves implicit. */
+.jc-root[data-theme='dark'] .jc-content th[style*="background"] {
+  color: #1f2328;
+}
+.jc-content img, .jc-content video, .jc-content iframe {
+  /* Same root cause as the list-style fix above: Tailwind's Preflight
+     sets `img, svg, video, canvas, audio, iframe, embed, object {
+     display: block; }` on every one of these tags on the page, unscoped
+     — and since this rule previously never declared `display` at all,
+     that reset was the only thing setting it, forcing every image/video/
+     embed onto its own line no matter where in the document it was
+     inserted. That's what broke "place two images side by side": it
+     isn't a caret-placement or insertion-logic problem (the standalone
+     project, with no such reset in the page, never showed it), it's this
+     one missing property. inline-block keeps the resize handles' width/
+     height math working exactly as it does for a plain inline element,
+     while still allowing multiple to sit on one line together.
+     Confirmed by reproducing the actual integration (Tailwind Preflight
+     + this stylesheet), not just inferred from reading Tailwind's source. */
+  display: inline-block;
+  max-width: 100%;
+}
+/* Tailwind's Preflight also carries its own reset for <hr> specifically
+   (separate from the list/image resets above): border-width forced to 0
+   on every element by its universal `*` rule, with hr's own follow-up
+   rule restoring only `border-top-width: 1px` and `color: inherit` —
+   there's no rule here at all setting hr's color or thickness, so absent
+   this, its line ends up whatever color surrounding text happens to be
+   rather than this editor's actual border color, and doesn't match the
+   weight the rest of the editor's dividers use. Pinned to the same
+   theme-aware variable every other border in this file already uses, so
+   it looks the same regardless of what surrounds the editor on the page. */
+.jc-content hr {
+  height: 0;
+  border: none;
+  border-top: 1px solid var(--jc-border);
+  margin: 1.4em 0;
+}
+.jc-content mark.jc-find-hit { background: var(--jc-find-hit); color: var(--jc-find-hit-text); border-radius: 2px; }
+.jc-content mark.jc-find-hit--current { background: var(--jc-find-hit-current); color: var(--jc-find-hit-current-text); }
+
+/* Alert / admonition blocks — same shape as a blockquote, colored by type */
+.jc-alert {
+  margin: 0 0 1em;
+  padding: 10px 14px;
+  border-left: 4px solid;
+  border-radius: 4px;
+}
+.jc-alert-content > *:last-child { margin-bottom: 0; }
+.jc-alert-label {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 4px;
+  user-select: none;
+}
+.jc-alert--note { background: var(--jc-note-bg); border-left-color: var(--jc-note); }
+.jc-alert--note .jc-alert-label { color: var(--jc-note); }
+.jc-alert--tip { background: var(--jc-tip-bg); border-left-color: var(--jc-tip); }
+.jc-alert--tip .jc-alert-label { color: var(--jc-tip); }
+.jc-alert--important { background: var(--jc-important-bg); border-left-color: var(--jc-important); }
+.jc-alert--important .jc-alert-label { color: var(--jc-important); }
+.jc-alert--caution { background: var(--jc-caution-bg); border-left-color: var(--jc-caution); }
+.jc-alert--caution .jc-alert-label { color: var(--jc-caution); }
+.jc-alert--warning { background: var(--jc-warning-bg); border-left-color: var(--jc-warning); }
+.jc-alert--warning .jc-alert-label { color: var(--jc-warning); }
+
+.jc-source {
+  flex: 1;
+  min-width: 0; /* same flex-item min-width:auto issue as .jc-content, see above */
+  min-height: 260px;
+  padding: 16px 20px;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: var(--jc-bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--jc-text);
+}
+
+/* ---------- Modal / popups ---------- */
+
+.jc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--jc-scrim);
+}
+
+.jc-modal {
+  width: min(420px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+  border: 1px solid var(--jc-border-subtle);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px var(--jc-shadow-strong);
+  padding: 18px 20px;
+}
+
+/* Shared form styling used by popup plugins (link, image, table, etc.) */
+
+.jc-form-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jc-form-field {
+  margin-bottom: 12px;
+}
+
+.jc-form-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+}
+
+.jc-form-field input[type='text'],
+.jc-form-field input[type='url'],
+.jc-form-field input[type='number'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+  font-size: 13.5px;
+}
+
+.jc-form-field input:focus {
+  outline: 2px solid var(--jc-focus-ring);
+  outline-offset: -1px;
+}
+
+.jc-form-field input.jc-input-error {
+  border-color: var(--jc-danger);
+}
+
+.jc-form-error {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--jc-danger);
+}
+
+.jc-form-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  font-size: 13.5px;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+}
+
+.jc-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--jc-text-secondary);
+}
+
+.jc-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.jc-find-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.jc-find-count {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+}
+
+.jc-btn-primary,
+.jc-btn-secondary {
+  padding: 7px 14px;
+  border-radius: 4px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.jc-btn-primary {
+  border: 1px solid var(--jc-accent);
+  background: var(--jc-accent);
+  color: #fff;
+}
+.jc-btn-primary:hover { background: var(--jc-accent-hover); border-color: var(--jc-accent-hover); }
+
+.jc-btn-secondary {
+  border: 1px solid var(--jc-border);
+  background: var(--jc-bg);
+  color: var(--jc-text-secondary);
+}
+.jc-btn-secondary:hover { background: var(--jc-hover-bg); }
+
+/* Table size grid (insert-table popup) */
+.jc-table-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 20px);
+  gap: 3px;
+  margin-bottom: 8px;
+}
+.jc-table-cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--jc-border);
+  border-radius: 2px;
+  background: var(--jc-bg);
+  padding: 0;
+  cursor: pointer;
+}
+.jc-table-cell--picked {
+  background: var(--jc-accent-soft);
+  border-color: var(--jc-accent);
+}
+.jc-table-size-label {
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+  margin-bottom: 10px;
+}
+
+/* Special-character grid */
+.jc-char-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.jc-char-cell {
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text);
+  font-size: 15px;
+  cursor: pointer;
+}
+.jc-char-cell:hover {
+  background: var(--jc-hover-bg);
+  border-color: var(--jc-border);
+}
+
+/* Emoji grid (mirrors the special-character grid's layout/behavior) */
+.jc-emoji-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  margin-bottom: 10px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+  font-size: 13.5px;
+}
+.jc-emoji-search:focus {
+  outline: 2px solid var(--jc-focus-ring);
+  outline-offset: -1px;
+}
+.jc-emoji-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--jc-border-subtle);
+}
+.jc-emoji-category {
+  padding: 4px 9px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.jc-emoji-category:hover { background: var(--jc-hover-bg); }
+.jc-emoji-category--active { background: var(--jc-accent-soft); color: var(--jc-accent); font-weight: 600; }
+.jc-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.jc-emoji-cell {
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.jc-emoji-cell:hover {
+  background: var(--jc-hover-bg);
+  border-color: var(--jc-border);
+}
+.jc-emoji-empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+}
+
+/* ---------- Code block widget (lives inside the editable content) ---------- */
+
+.jc-code-block {
+  margin: 0 0 1em;
+  border: 1px solid var(--jc-border-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--jc-bg);
+}
+
+.jc-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--jc-surface);
+  border-bottom: 1px solid var(--jc-border-subtle);
+}
+
+.jc-code-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jc-code-tab {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--jc-text-muted);
+  cursor: pointer;
+}
+.jc-code-tab:hover { background: var(--jc-hover-bg); }
+.jc-code-tab--active {
+  background: var(--jc-bg);
+  color: var(--jc-accent);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--jc-border-subtle);
+}
+
+.jc-code-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.jc-code-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 7px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jc-text-muted);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.jc-code-action:hover { background: var(--jc-hover-bg); color: var(--jc-text); }
+.jc-code-action--close {
+  padding: 0 5px;
+}
+.jc-code-action--close:hover { background: var(--jc-danger-bg); color: var(--jc-danger); }
+.jc-code-action-label { white-space: nowrap; }
+
+.jc-code-panels { position: relative; }
+.jc-code-tab-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px dashed var(--jc-text-disabled);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--jc-text-muted);
+  cursor: pointer;
+}
+.jc-code-tab-add:hover { background: var(--jc-hover-bg); border-color: var(--jc-text-faint); color: var(--jc-text); }
+.jc-code-pre {
+  margin: 0;
+  padding: 10px 14px 14px;
+  overflow-x: auto;
+  background: transparent;
+}
+.jc-code-pre code.hljs {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: transparent;
+  padding: 0;
+}
+.jc-code-edit-area {
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - 28px);
+  min-height: 140px;
+  margin: 10px 14px 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Insert-code popup — its own file tabs, separate from the widget's tabs */
+.jc-code-form-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.jc-code-form-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  font-size: 12.5px;
+  color: var(--jc-text-secondary);
+  cursor: pointer;
+}
+.jc-code-form-tab--active {
+  border-color: var(--jc-accent);
+  color: var(--jc-accent);
+  background: var(--jc-accent-soft-alt);
+}
+.jc-code-form-tab-close {
+  font-size: 13px;
+  color: var(--jc-text-faint);
+  line-height: 1;
+}
+.jc-code-form-tab-close:hover { color: var(--jc-danger); }
+.jc-code-form-tab-add {
+  border-style: dashed;
+  color: var(--jc-text-muted);
+}
+.jc-code-form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--jc-border);
+  border-radius: 4px;
+  background: var(--jc-bg);
+  color: var(--jc-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* In Preview/Print, code widgets shouldn't show interactive chrome, and
+   every tab should render stacked (read-only content has nothing to
+   "switch" to) rather than only the currently-active one. A label is
+   still needed to tell stacked panels apart once the tab bar is hidden —
+   generated purely by CSS from data-filename (no DOM element for it, so
+   the live editor stays free of the extra space that caused). */
+.jc-preview-content .jc-code-actions,
+.jc-preview-content .jc-code-tabs {
+  display: none;
+}
+.jc-preview-content .jc-code-panel {
+  display: block !important;
+}
+.jc-preview-content .jc-code-panel::before {
+  content: attr(data-filename);
+  display: block;
+  padding: 8px 14px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--jc-text-faint);
+}
+.jc-preview-content .jc-code-panel + .jc-code-panel {
+  border-top: 1px solid var(--jc-border-subtle);
+}
+.jc-preview-content .jc-code-block {
+  margin-bottom: 16px;
+}
+
+/* Preview modal — opened via the `large` popup variant (see Modal.jsx) */
+.jc-modal--large {
+  width: min(880px, 92vw);
+  max-height: 88vh;
+}
+
+.jc-preview-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.jc-preview-meta {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--jc-text-muted);
+}
+
+.jc-preview-page-wrap {
+  display: flex;
+  justify-content: center;
+  background: var(--jc-surface-canvas);
+  border-radius: 6px;
+  padding: 16px;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.jc-preview-page {
+  width: 100%;
+  background: var(--jc-bg);
+  border: 1px solid var(--jc-border-subtle);
+  border-radius: 6px;
+  padding: 30px 36px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.jc-preview-content {
+  min-height: 120px;
+}

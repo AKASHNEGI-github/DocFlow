@@ -1,0 +1,35 @@
+{
+  "name": "docflow-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DocFlow backend - Express API for the document workflow platform (Draft -> Editorial -> Review -> Publication -> Live, plus the Deletion sub-flow).",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "migrate": "knex --knexfile knexfile.js migrate:latest",
+    "migrate:rollback": "knex --knexfile knexfile.js migrate:rollback",
+    "migrate:make": "knex --knexfile knexfile.js migrate:make",
+    "seed": "knex --knexfile knexfile.js seed:run",
+    "test": "bash tests/smoke_test_1_full_lifecycle.sh && bash tests/smoke_test_2_reject_cancel_reset.sh"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.20.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.14",
+    "pg": "^8.11.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0"
+  }
+}
